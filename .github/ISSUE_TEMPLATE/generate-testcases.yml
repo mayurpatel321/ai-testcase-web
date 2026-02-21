@@ -1,0 +1,24 @@
+name: Generate Test Cases
+description: Submit scenario to generate AI-based test cases
+title: "Generate Test Cases"
+labels: ["ai-testcase"]
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scenario
+      description: Describe the functional scenario
+      placeholder: User logs in and resets password
+    validations:
+      required: true
+
+  - type: dropdown
+    id: format
+    attributes:
+      label: Output Format
+      options:
+        - table
+        - bdd
+        - checklist
+    validations:
+      required: true
