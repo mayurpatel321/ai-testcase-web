@@ -8,80 +8,58 @@ permissions:
   issues: write
 
 jobs:
-  generate-testcases:
-    if: contains(github.event.issue.labels.*.name, 'ai-testcase')
+  generate:
     runs-on: ubuntu-latest
 
+    # run only when label exists
+    if: contains(github.event.issue.labels.*.name, 'ai-testcase')
+
     steps:
-      - name: Extract Issue Data & Generate Test Cases
+      - name: Generate Test Cases
         uses: actions/github-script@v7
         with:
           script: |
-            const issue = context.payload.issue.body;
+            const issueBody = context.payload.issue.body || "";
 
-            function extractSection(text, start, end=null) {
-              const startIndex = text.indexOf(start);
-              if (startIndex === -1) return "";
-              const from = startIndex + start.length;
+            function extract(text, start, end=null) {
+              const s = text.indexOf(start);
+              if (s === -1) return "";
+              const from = s + start.length;
               if (!end) return text.substring(from).trim();
-              const endIndex = text.indexOf(end, from);
-              return text.substring(from, endIndex).trim();
+              const e = text.indexOf(end, from);
+              return text.substring(from, e).trim();
             }
 
-            const scenario = extractSection(issue, "### Scenario", "### Output Format");
-            const format = extractSection(issue, "### Output Format");
+            const scenario = extract(issueBody, "### Scenario", "### Output Format");
+            const format = extract(issueBody, "### Output Format").toLowerCase();
 
-            function generateTable(scenario) {
-              return `
-### ✅ Structured Test Cases
+            let result = "";
 
-| TC ID | Description | Steps | Expected Result |
-|------|------------|------|----------------|
-| TC-01 | Verify main flow | Execute scenario | System behaves correctly |
-| TC-02 | Validate invalid input | Enter incorrect data | Error message displayed |
-| TC-03 | Edge case validation | Leave fields blank | Proper validation shown |
+            if (format.includes("bdd")) {
+              result = `### ✅ BDD Test Cases
 
-**Scenario:** ${scenario}
-`;
+Given ${scenario}
+When the user performs the action
+Then the expected result should occur`;
             }
-
-            function generateBDD(scenario) {
-              return `
-### ✅ BDD Test Cases
-
-**Scenario:** ${scenario}
-
-Given the user is on the system  
-When the user performs the action  
-Then the expected result should occur  
-
-And the system should handle errors gracefully
-`;
-            }
-
-            function generateChecklist(scenario) {
-              return `
-### ✅ QA Checklist
-
-**Scenario:** ${scenario}
+            else if (format.includes("checklist")) {
+              result = `### ✅ QA Checklist
 
 - [ ] Verify main workflow
 - [ ] Validate negative scenarios
-- [ ] Test boundary conditions
-- [ ] Check UI validations
-- [ ] Confirm error messages
-- [ ] Verify performance response
-`;
+- [ ] Test edge cases
+- [ ] Verify error handling`;
             }
+            else {
+              result = `### ✅ Structured Test Cases
 
-            let result;
+| TC ID | Description | Steps | Expected Result |
+|------|------------|------|----------------|
+| TC-01 | Verify scenario | Execute scenario | Expected behavior |
+| TC-02 | Invalid input handling | Enter wrong data | Error shown |
+| TC-03 | Boundary validation | Leave fields empty | Validation message |
 
-            if (format.includes("bdd")) {
-              result = generateBDD(scenario);
-            } else if (format.includes("checklist")) {
-              result = generateChecklist(scenario);
-            } else {
-              result = generateTable(scenario);
+**Scenario:** ${scenario}`;
             }
 
             await github.rest.issues.createComment({
