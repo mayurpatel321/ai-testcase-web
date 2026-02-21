@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Test Case Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    textarea, select, button {
+      width: 100%;
+      margin-top: 12px;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #2ea44f;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    button:hover {
+      background-color: #22863a;
+    }
+
+    .note {
+      margin-top: 15px;
+      color: #555;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>AI Test Case Generator</h2>
+
+  <label>Describe your scenario:</label>
+  <textarea id="scenario" rows="8" placeholder="Example: User logs into the app and resets password"></textarea>
+
+  <label>Select output format:</label>
+  <select id="format">
+    <option value="table">Structured Test Case Table</option>
+    <option value="bdd">BDD (Given/When/Then)</option>
+    <option value="checklist">QA Checklist</option>
+  </select>
+
+  <button onclick="generate()">Generate Test Cases</button>
+
+  <p class="note">
+    After clicking Generate, a GitHub page will open.<br>
+    Click <b>Submit new issue</b> to generate test cases.
+  </p>
+
+<script>
+function generate() {
+  const scenario = document.getElementById("scenario").value.trim();
+  const format = document.getElementById("format").value;
+
+  if (!scenario) {
+    alert("Please enter a scenario.");
+    return;
+  }
+
+  const title = encodeURIComponent("Generate Test Cases");
+  const body = encodeURIComponent(
+`### Scenario
+${scenario}
+
+### Output Format
+${format}`
+  );
+
+  const url = `https://github.com/YOUR_USERNAME/YOUR_REPO/issues/new?title=${title}&body=${body}`;
+
+  window.open(url, "_blank");
+}
+</script>
+
+</body>
+</html>
