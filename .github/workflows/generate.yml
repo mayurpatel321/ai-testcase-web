@@ -1,0 +1,92 @@
+name: AI Test Case Generator
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  generate-testcases:
+    if: contains(github.event.issue.labels.*.name, 'ai-testcase')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract Issue Data & Generate Test Cases
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue.body;
+
+            function extractSection(text, start, end=null) {
+              const startIndex = text.indexOf(start);
+              if (startIndex === -1) return "";
+              const from = startIndex + start.length;
+              if (!end) return text.substring(from).trim();
+              const endIndex = text.indexOf(end, from);
+              return text.substring(from, endIndex).trim();
+            }
+
+            const scenario = extractSection(issue, "### Scenario", "### Output Format");
+            const format = extractSection(issue, "### Output Format");
+
+            function generateTable(scenario) {
+              return `
+### ✅ Structured Test Cases
+
+| TC ID | Description | Steps | Expected Result |
+|------|------------|------|----------------|
+| TC-01 | Verify main flow | Execute scenario | System behaves correctly |
+| TC-02 | Validate invalid input | Enter incorrect data | Error message displayed |
+| TC-03 | Edge case validation | Leave fields blank | Proper validation shown |
+
+**Scenario:** ${scenario}
+`;
+            }
+
+            function generateBDD(scenario) {
+              return `
+### ✅ BDD Test Cases
+
+**Scenario:** ${scenario}
+
+Given the user is on the system  
+When the user performs the action  
+Then the expected result should occur  
+
+And the system should handle errors gracefully
+`;
+            }
+
+            function generateChecklist(scenario) {
+              return `
+### ✅ QA Checklist
+
+**Scenario:** ${scenario}
+
+- [ ] Verify main workflow
+- [ ] Validate negative scenarios
+- [ ] Test boundary conditions
+- [ ] Check UI validations
+- [ ] Confirm error messages
+- [ ] Verify performance response
+`;
+            }
+
+            let result;
+
+            if (format.includes("bdd")) {
+              result = generateBDD(scenario);
+            } else if (format.includes("checklist")) {
+              result = generateChecklist(scenario);
+            } else {
+              result = generateTable(scenario);
+            }
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: result
+            });
