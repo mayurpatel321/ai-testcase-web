@@ -59,16 +59,10 @@
   </p>
 
 <script>
-function generate() {
-  const scenario = document.getElementById("scenario").value.trim();
+function generateTestCases() {
+  const scenario = document.getElementById("scenario").value;
   const format = document.getElementById("format").value;
 
-  if (!scenario) {
-    alert("Please enter a scenario.");
-    return;
-  }
-
-  const title = encodeURIComponent("Generate Test Cases");
   const body = encodeURIComponent(
 `### Scenario
 ${scenario}
@@ -77,11 +71,12 @@ ${scenario}
 ${format}`
   );
 
-  const url = `https://github.com/mayurpatel321/ai-testcase-web/issues/new?title=${title}&body=${body}`;
+  const url = `https://github.com/mayurpatel321/ai-testcase-web/issues/new?labels=ai-testcase&title=Generate%20Test%20Cases&body=${body}`;
 
   window.open(url, "_blank");
 }
 </script>
+
 
 </body>
 </html>
