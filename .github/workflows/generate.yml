@@ -2,7 +2,7 @@ name: AI Test Case Generator
 
 on:
   issues:
-    types: [opened, labeled]
+    types: [opened, edited, labeled]
 
 permissions:
   contents: read
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # run only when label exists
-    if: contains(github.event.issue.labels.*.name, 'ai-testcase')
+    
 
     steps:
       - name: Generate Test Cases
